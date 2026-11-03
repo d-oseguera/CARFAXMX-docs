@@ -1,0 +1,87 @@
+---
+title: "Contratos y errores"
+description: "Los dos contratos de respuesta del servicio y el catálogo de códigos de error"
+icon: "file-contract"
+groups: ["svc-ms-consulta-ws"]
+---
+
+El servicio convive con **dos contratos de respuesta**. Cuál aplica depende de la ruta, no de la versión de tu credencial.
+
+## Contrato legado — entidades e instituciones
+
+Las rutas `/api/entidades/*`, `/api/instituciones/*` y `/api/siadeconsrv/*` conservan su contrato histórico **sin envelope** (decisión registrada en el ADR-0003: los consumidores existentes dependen de esa forma exacta).
+
+<Tabs>
+  <Tab title="nuevaConsulta">
+    ```json
+    {
+      "_id": "<ID>",
+      "node_reporte": "<IDENTIFICADOR_DEL_REPORTE>",
+      "timestamp": "2026-10-28T14:50:00.000Z"
+    }
+    ```
+    La forma exacta varía por entidad; consulta tu endpoint en el grupo **Referencia de API** de la barra lateral.
+  </Tab>
+  <Tab title="obtenerReporte">
+    ```json
+    {
+      "ready": true,
+      "data": { "…": "contenido del reporte" }
+    }
+    ```
+    Con `ready: false` el reporte aún se está procesando: reintenta después.
+  </Tab>
+  <Tab title="Errores">
+    Excepciones HTTP estándar con mensaje en español. El `401` usa siempre el texto fijo `Unauthorized. Without message.`.
+  </Tab>
+</Tabs>
+
+## Envelope estándar — dealers e internal
+
+Las rutas `/api/dealers/*` e `/internal/*` usan el envelope estándar de CARFAX MX:
+
+```json
+{
+  "statusCode": 201,
+  "message": "…",
+  "_id": "<ID_AUDITORIA>",
+  "data": { "…": "payload de la operación" },
+  "error": null
+}
+```
+
+En error, `data` es `null` y `error` trae código y detalles:
+
+```json
+{
+  "statusCode": 422,
+  "message": "…",
+  "_id": "<ID_AUDITORIA>",
+  "data": null,
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "details": ["VIN must be longer than or equal to 5 characters"]
+  }
+}
+```
+
+### Catálogo de códigos de error
+
+| Código | Significado |
+| --- | --- |
+| `INVALID_PARAMETER` | El body o los parámetros no pasan la validación |
+| `INVALID_API_KEY` | Credencial ausente, inactiva o inexistente |
+| `ACCESS_DENIED` | La credencial no tiene el rol, la política o el distribuidor requerido |
+| `NOT_FOUND` | El recurso (reporte, consulta) no existe |
+| `STATE_CONFLICT` | La operación no es válida en el estado actual del recurso |
+| `RATE_LIMIT_EXCEEDED` | Se excedió el límite de llamadas |
+| `INTERNAL_ERROR` | Error no controlado del servicio |
+| `PROVIDER_ERROR` | Un proveedor aguas abajo respondió con error |
+| `PROVIDER_TIMEOUT` | Un proveedor aguas abajo no respondió a tiempo |
+| `SERVICE_UNAVAILABLE` | El servicio no puede atender la solicitud en este momento |
+
+## Límites de la solicitud
+
+- Body máximo: **1 MiB**.
+- Timeout de la conexión: 100 segundos.
+- `x-correlation-id`: máximo 128 caracteres.

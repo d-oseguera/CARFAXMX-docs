@@ -5,3 +5,6 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# Tooling del repo (no es contenido del sitio)
+scripts/

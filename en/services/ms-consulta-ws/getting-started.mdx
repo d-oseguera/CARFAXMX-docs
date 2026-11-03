@@ -1,0 +1,80 @@
+---
+title: "Getting started"
+description: "Your first vehicle history query"
+icon: "rocket"
+groups: ["svc-ms-consulta-ws"]
+---
+
+This guide takes you from zero to a successful query. The example uses the **dealers** contract; if you consume as an entity or institution, the flow is the same but with your route and your DTO (see the **API reference** group in the sidebar).
+
+## Prerequisites
+
+- A valid `Api-Key` issued by CARFAX MX for your organization.
+- The base URL for your environment (QA or production), delivered along with your credential. The examples use `<HOST>`.
+
+<Warning>
+  Your `Api-Key` is confidential: don't publish it, don't commit it to source code, and rotate the credential immediately if it's ever exposed.
+</Warning>
+
+## 1. Create a query
+
+<Steps>
+  <Step title="Send the request">
+    ```bash
+    curl -X POST "https://<HOST>/api/dealers/<DEALER_SLUG>/nuevaConsulta" \
+      -H "Api-Key: <API_KEY>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "VIN": "1HGBH41JXMN109186",
+        "plate": "ABC1234",
+        "odometer": 45200,
+        "odometerUnits": "KM",
+        "odometerDate": "2026-10-28T14:50:00.000Z",
+        "extraData": []
+      }'
+    ```
+
+    The VIN in the example is synthetic. `extraData` accepts up to 20 dealer-defined key/value pairs.
+  </Step>
+  <Step title="Save the identifier">
+    The `201` response arrives in the standard envelope; keep the identifier returned in `data` for the next step. The envelope's `_id` is the audit folio for the transaction.
+
+    ```json
+    {
+      "statusCode": 201,
+      "message": "…",
+      "_id": "<AUDIT_ID>",
+      "data": { "…": "query identifier and status" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Retrieve the report">
+    Processing is asynchronous: fetch the result once it's ready.
+
+    ```bash
+    curl "https://<HOST>/api/dealers/<DEALER_SLUG>/obtenerReporte/<ID>" \
+      -H "Api-Key: <API_KEY>"
+    ```
+
+    The response delivers the reduced report view for dealers. The exact request and response schemas are under the **API reference** group in the sidebar.
+  </Step>
+</Steps>
+
+## Tracing with `x-correlation-id`
+
+You can send the optional `x-correlation-id` header (128 characters max) to correlate your calls with your own systems; the service echoes it back in the response. If you don't send one, the service generates it.
+
+```bash
+-H "x-correlation-id: order-2026-000123"
+```
+
+## Common errors when starting out
+
+| Symptom | Likely cause |
+| --- | --- |
+| `401 Unauthorized` | `Api-Key` missing, inactive, expired, or unknown |
+| `403` | Your credential lacks the role, policy, or distributor the route requires |
+| `404` on dealers | The path slug doesn't match your distributor |
+
+Error codes and contracts are detailed in [Contracts and errors](/en/services/ms-consulta-ws/contracts-and-errors).

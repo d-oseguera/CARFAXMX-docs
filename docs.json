@@ -1,72 +1,109 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "CARFAX MX Docs",
+  "description": "Documentación interna de los microservicios de CARFAX MX",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0B5FA5",
+    "light": "#3E8DD6",
+    "dark": "#084B83"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
-    "pages": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "navbar": {
-    "links": [
+  "navigation": {
+    "languages": [
       {
-        "label": "Support",
-        "href": "mailto:support@mintlify.com"
+        "language": "es",
+        "tabs": [
+          {
+            "tab": "Inicio",
+            "groups": [
+              {
+                "group": "Bienvenida",
+                "pages": ["es/index"]
+              },
+              {
+                "group": "Guías internas",
+                "pages": ["es/guias/control-de-acceso"]
+              }
+            ]
+          },
+          {
+            "tab": "ms-consulta-ws",
+            "groups": [
+              {
+                "group": "Servicio",
+                "pages": [
+                  "es/servicios/ms-consulta-ws/introduccion",
+                  "es/servicios/ms-consulta-ws/primeros-pasos",
+                  "es/servicios/ms-consulta-ws/autenticacion",
+                  "es/servicios/ms-consulta-ws/contratos-y-errores",
+                  "es/servicios/ms-consulta-ws/decisiones-adr"
+                ]
+              },
+              {
+                "group": "Referencia de API",
+                "openapi": {
+                  "source": "api-reference/ms-consulta-ws/openapi.json",
+                  "directory": "es/servicios/ms-consulta-ws/api"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "en",
+        "tabs": [
+          {
+            "tab": "Home",
+            "groups": [
+              {
+                "group": "Welcome",
+                "pages": ["en/index"]
+              },
+              {
+                "group": "Internal guides",
+                "pages": ["en/guides/access-control"]
+              }
+            ]
+          },
+          {
+            "tab": "ms-consulta-ws",
+            "groups": [
+              {
+                "group": "Service",
+                "pages": [
+                  "en/services/ms-consulta-ws/introduction",
+                  "en/services/ms-consulta-ws/getting-started",
+                  "en/services/ms-consulta-ws/authentication",
+                  "en/services/ms-consulta-ws/contracts-and-errors",
+                  "en/services/ms-consulta-ws/adr-decisions"
+                ]
+              },
+              {
+                "group": "API reference",
+                "openapi": {
+                  "source": "api-reference/ms-consulta-ws/openapi.json",
+                  "directory": "en/services/ms-consulta-ws/api"
+                }
+              }
+            ]
+          }
+        ]
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+    ]
+  },
+  "api": {
+    "examples": {
+      "languages": ["curl", "javascript", "python"],
+      "defaults": "required"
     }
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    "options": ["copy", "view"]
   }
 }

@@ -1,0 +1,4815 @@
+{
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Ruta pública usada por las sondas de Kubernetes. No consulta dependencias.",
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Servicio operativo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "status": "ok",
+                    "message": "Healthy"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "Liveness/readiness del servicio",
+        "tags": [
+          "ops"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/internal/v1/docs": {
+      "get": {
+        "description": "Devuelve título, versión y la URL del documento OpenAPI 3.1. Requiere API key con rol `superadmin` o `admin`.",
+        "operationId": "DocsController_getIndex",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Índice disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API key ausente o inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no tiene rol de administración.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Índice de la documentación técnica",
+        "tags": [
+          "internal"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/carfax/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "CarfaxMxController_newReportRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CarfaxMxDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/carfax/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "CarfaxMxController_getReportV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/edomex/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "EdomexController_newReportRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdoMexDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/edomex/obtenerReporte/v2/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "EdomexController_getReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte (versión 2 del contrato) por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/edomex/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "EdomexController_getReportV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/edomex/nuevaConsultaHv": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "EdomexController_newReportRequestLpnp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdoMexDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta de historial vehicular (LPNP)",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/edomex/obtenerReporteHv/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "EdomexController_getReportV2Lpnp",
+        "parameters": [
+          {
+            "name": "documento",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "folio",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte (historial vehicular LPNP) por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/guanajuato/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "GuanajuatoController_newReportRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuanajuatoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/guanajuato/obtenerReporte/v2/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "GuanajuatoController_getReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte (versión 2 del contrato) por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/guanajuato/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "GuanajuatoController_getReportV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/guanajuato/obtenerReportes": {
+      "get": {
+        "description": "Devuelve los reportes asociados a la entidad autenticada. Contrato histórico del endpoint (sin paginación).",
+        "operationId": "GuanajuatoController_getReports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Listado de reportes."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Lista los reportes de la entidad",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/nuevoLeon/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "NuevoLeonController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevoLeonDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/nuevoLeon/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "NuevoLeonController_getReportV2",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/bajaCalifornia/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "BajaCaliforniaController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/bajaCaliforniaDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/bajaCalifornia/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "BajaCaliforniaController_getReportV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/bajaCalifornia/nuevaConsultaCompleta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "BajaCaliforniaController_newFullRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/bajaCaliforniaDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta completa",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/bajaCalifornia/obtenerReporteCompleto/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "BajaCaliforniaController_getCompleteReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte completo por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/queretaro/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "QueretaroController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueretaroDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/queretaro/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "QueretaroController_getReport",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/queretaro/obtenerReporte/PDF/{id}": {
+      "get": {
+        "description": "Solicita el PDF al servicio de reportes reenviando la `Api-Key` del cliente y lo devuelve. Contrato histórico del endpoint.",
+        "operationId": "QueretaroController_getPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b",
+              "type": "string"
+            }
+          },
+          {
+            "name": "step",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF del reporte o respuesta del servicio de reportes."
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el PDF del reporte",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/coahuila/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "CoahuilaController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoahuilaDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/coahuila/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "CoahuilaController_getReportV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/coahuila/nuevaConsultaTramite": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "CoahuilaController_nuevaConsultaNewVersion",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoahuilaDTOTramite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta de trámite",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/coahuila/obtenerReporteTramite/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "CoahuilaController_getReportNewVersion",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte de trámite por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/bajaCaliforniaSur/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "BajaCaliforniaSurController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BajaCaliforniaSuroDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/bajaCaliforniaSur/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "BajaCaliforniaSurController_getReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/quintanaRoo/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "QuintanaRooController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Quintana_Roo_DTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/quintanaRoo/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "QuintanaRooController_getReportV2",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/cdmx/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "CdMxController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CdMxDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/cdmx/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "CdMxController_getReportV2",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/cdmx/obtenerReporte/PDF/{id}": {
+      "get": {
+        "description": "Solicita el PDF al servicio de reportes reenviando la `Api-Key` del cliente y lo devuelve. Contrato histórico del endpoint.",
+        "operationId": "CdMxController_getPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b",
+              "type": "string"
+            }
+          },
+          {
+            "name": "step",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF del reporte o respuesta del servicio de reportes."
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el PDF del reporte",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/ssedomex/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "SsEdomexController_newReportRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EdoMexDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/entidades/ssedomex/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "SsEdomexController_getReport",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "entidades"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/repuve/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "RepuveController_newReportRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepuveDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/siadeconsrv/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "SiadeconsrvController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiadeconsrvDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/siadeconsrv/obtenerReporte/{id}": {
+      "get": {
+        "description": "Solicita el PDF al servicio de reportes reenviando la `Api-Key` del cliente y lo devuelve. Contrato histórico del endpoint.",
+        "operationId": "SiadeconsrvController_getPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF del reporte o respuesta del servicio de reportes."
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el PDF del reporte",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/anapromex/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "AnapromexController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnapromexDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/anapromex/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "AnapromexController_getReportV2",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/cfx/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "InternalController_newReportRequest",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InternalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/cfx/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve el estado y el contenido del reporte asociado al `_id` que se obtuvo al registrar la consulta. Si el reporte aún no está listo, responde 200 con el mensaje correspondiente. Contrato histórico del endpoint.",
+        "operationId": "InternalController_getReport",
+        "parameters": [
+          {
+            "name": "document",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte (o estado del reporte) de la consulta.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "statusCode": 200,
+                    "message": "Consulta generada con éxito para el ID 65f1a2b3c4d5e6f708192a3b.",
+                    "_id": "65f1a2b3c4d5e6f708192a3c",
+                    "data": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte por identificador de consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/cas/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo, persiste la solicitud con un `_id` de auditoría, la encola para su procesamiento y devuelve el identificador con el que se consulta el reporte. Contrato histórico del endpoint (sin envelope).",
+        "operationId": "CasController_nuevaConsulta",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CasDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consulta registrada. Cuerpo: contrato histórico (incluye el `_id` de la consulta)."
+          },
+          "400": {
+            "description": "Cuerpo inválido (validación de DTO) o VIN/placa rechazado."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/instituciones/cas/obtenerReporte/{id}": {
+      "get": {
+        "description": "Solicita el PDF al servicio de reportes reenviando la `Api-Key` del cliente y lo devuelve. Contrato histórico del endpoint.",
+        "operationId": "CasController_getPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF del reporte o respuesta del servicio de reportes."
+          },
+          "400": {
+            "description": "Identificador inválido (no es un ObjectId)."
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada."
+          },
+          "403": {
+            "description": "La API key no tiene el rol, la política o el distribuidor requeridos."
+          },
+          "500": {
+            "description": "Error interno. El mensaje incluye el `_id` de auditoría para soporte."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el PDF del reporte",
+        "tags": [
+          "instituciones"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/dealers/{dealer}/nuevaConsulta": {
+      "post": {
+        "description": "Valida el cuerpo (VIN, placa, odómetro, sucursal `dealerID`, entidad de la placa y datos opcionales por referencia), persiste la solicitud con un `_id` de auditoría y la encola en la cola de procesamiento configurada para el dealer. Las fotos y documentos viajan solo como URLs https; los binarios se adjuntan después por un endpoint dedicado. Envelope estándar.",
+        "operationId": "DealersController_nuevaConsulta",
+        "parameters": [
+          {
+            "name": "dealer",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (slug) del dealer asignado por CARFAX MX. Debe coincidir con el distribuidor de la Api-Key, que a su vez debe estar habilitado como dealer (`isDealer: true`).",
+            "schema": {
+              "example": "dealer-demo"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DealerConsultaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Consulta registrada y encolada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DealerConsultaRegistradaResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cuerpo inválido (detalle por campo en `error.details`), fecha futura o slug de dealer con formato inválido (`INVALID_PARAMETER`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada (`INVALID_API_KEY`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no corresponde al dealer del path, su distribuidor no está habilitado como dealer (`isDealer`), `dealerID` no es una sucursal del distribuidor o no tiene el rol/política requeridos (`ACCESS_DENIED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno (`INTERNAL_ERROR`). Reporta el `_id` a soporte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El dealer no tiene cola de procesamiento disponible (`SERVICE_UNAVAILABLE`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Registra una nueva consulta de un dealer",
+        "tags": [
+          "dealers"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    },
+    "/api/dealers/{dealer}/obtenerReporte/{id}": {
+      "get": {
+        "description": "Devuelve datos generales del vehículo y la interpretación (semáforos) del reporte asociado al `id` obtenido al registrar la consulta. Si el reporte aún no está listo responde 200 con `data.consulta.listo = false`. Por política, vía WS no se entrega el reporte completo ni el PDF. Envelope estándar.",
+        "operationId": "DealersController_obtenerReporte",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (ObjectId) devuelto al registrar la consulta.",
+            "schema": {
+              "example": "65f1a2b3c4d5e6f708192a3b",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dealer",
+            "required": true,
+            "in": "path",
+            "description": "Identificador (slug) del dealer asignado por CARFAX MX. Debe coincidir con el distribuidor de la Api-Key, que a su vez debe estar habilitado como dealer (`isDealer: true`).",
+            "schema": {
+              "example": "dealer-demo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reporte listo (`DealerReporteResponseDto`) o en proceso (`DealerReportePendienteResponseDto`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/DealerReporteResponseDto"
+                    },
+                    {
+                      "$ref": "#/components/schemas/DealerReportePendienteResponseDto"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Identificador o slug inválido (`INVALID_PARAMETER`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API key ausente, inválida, inactiva o expirada (`INVALID_API_KEY`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La API key no corresponde al dealer del path, su distribuidor no está habilitado como dealer (`isDealer`) o no tiene el rol/política requeridos (`ACCESS_DENIED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La consulta no existe para este distribuidor (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno (`INTERNAL_ERROR`). Reporta el `_id` a soporte.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "summary": "Obtiene el reporte reducido de una consulta",
+        "tags": [
+          "dealers"
+        ],
+        "x-mint": {
+          "groups": [
+            "svc-ms-consulta-ws"
+          ]
+        }
+      }
+    }
+  },
+  "info": {
+    "title": "CARFAX MX — ms-consulta-ws",
+    "description": "Microservicio de consulta de historial vehicular de CARFAX MX.\n\nRecibe solicitudes de consulta (VIN/placa) de entidades estatales y proveedores, las persiste, las encola para su procesamiento y entrega el reporte o el PDF resultante.\n\n**Autenticación:** header `Api-Key` en todas las rutas salvo `/health`. La autorización por rol, política y distribuidor se evalúa por endpoint.\n\n**Trazabilidad:** cada respuesta de consulta incluye el `_id` del registro de auditoría. Soporte puede reconstruir la transacción a partir de ese valor.\n\n**Catálogo de `error.code`** (rutas con envelope: `/internal/*` y `/api/dealers/*`):\n| Código | Significado | Acción del cliente |\n|--------|-------------|--------------------|\n| INVALID_PARAMETER | La solicitud no cumple el contrato | Corregir la solicitud |\n| INVALID_API_KEY | API key ausente, inválida, inactiva o expirada | Verificar credenciales |\n| ACCESS_DENIED | La key no tiene el rol requerido | Contactar al administrador |\n| NOT_FOUND | El recurso no existe | Verificar el identificador |\n| INTERNAL_ERROR | Error no controlado | Contactar a soporte con el `_id` |\n| SERVICE_UNAVAILABLE | Dependencia no disponible | Reintentar más tarde |\n\nLas rutas históricas (`/api/*` existentes antes de 2026-10-27) conservan su contrato de respuesta original. `/api/dealers/*` es nueva y usa el envelope (ADR-0006).",
+    "version": "1.0.0",
+    "contact": {
+      "name": "CARFAX MX Backend",
+      "email": "soporte@carfaxmx.com.mx"
+    },
+    "license": {
+      "name": "UNLICENSED — CARFAX MX",
+      "url": "https://github.com/CARFAX-MEXICO/CARFAXMX-msConsultaWs"
+    }
+  },
+  "tags": [
+    {
+      "name": "ops",
+      "description": "Operación del servicio"
+    },
+    {
+      "name": "internal",
+      "description": "Rutas internas (documentación)"
+    },
+    {
+      "name": "entidades",
+      "description": "Consultas de entidades estatales"
+    },
+    {
+      "name": "instituciones",
+      "description": "Consultas de instituciones y proveedores"
+    },
+    {
+      "name": "dealers",
+      "description": "Consultas de clientes dealers (vista reducida)"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local (docker compose)"
+    },
+    {
+      "url": "https://{host}",
+      "description": "Entorno desplegado (QA/prod; host interno, nunca documentado aquí)",
+      "variables": {
+        "host": {
+          "default": "ms-consulta-ws.internal",
+          "description": "Host del servicio en el entorno"
+        }
+      }
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "api-key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Api-Key",
+        "description": "API key emitida por CARFAX MX. Nunca se envía en la URL."
+      }
+    },
+    "schemas": {
+      "ErrorObjectDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Código estable del catálogo, en inglés (SCREAMING_SNAKE_CASE).",
+            "example": "ACCESS_DENIED"
+          },
+          "details": {
+            "type": "array",
+            "description": "Detalles seguros y accionables.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "issue": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "code",
+          "details"
+        ]
+      },
+      "StandardResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Igual al código HTTP real de la respuesta.",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje legible en inglés. Nunca expone detalles internos.",
+            "example": "Technical documentation available."
+          },
+          "_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Identificador del registro de auditoría de la transacción.",
+            "example": "65f1a2b3c4d5e6f708192a3b"
+          },
+          "data": {
+            "type": "object",
+            "description": "Payload en éxito (2xx); objeto vacío en cualquier otro caso.",
+            "additionalProperties": true
+          },
+          "error": {
+            "description": "Detalle estructurado de error. Objeto vacío en éxito.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorObjectDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "_id",
+          "data",
+          "error"
+        ]
+      },
+      "InsurancePolicyComplementDto": {
+        "type": "object",
+        "properties": {
+          "insuranceCompanyName": {
+            "type": "string"
+          },
+          "policyNumber": {
+            "type": "string"
+          },
+          "coverageStartDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "coverageEndDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expirationTime": {
+            "type": "string"
+          },
+          "expirationUnit": {
+            "type": "string",
+            "enum": [
+              "Hours",
+              "Days",
+              "Months",
+              "Years"
+            ]
+          }
+        },
+        "required": [
+          "insuranceCompanyName",
+          "policyNumber",
+          "coverageStartDate",
+          "coverageEndDate",
+          "expirationTime",
+          "expirationUnit"
+        ]
+      },
+      "InsuranceClaimDto": {
+        "type": "object",
+        "properties": {
+          "claimEntity": {
+            "type": "string",
+            "enum": [
+              "64225bc3daf7b618cc097cd1",
+              "64225bc3daf7b618cc097cd2",
+              "64225bc3daf7b618cc097cd3",
+              "64225bc3daf7b618cc097cd4",
+              "64225bc3daf7b618cc097cd5",
+              "64225bc3daf7b618cc097cd6",
+              "64225bc3daf7b618cc097cd7",
+              "64225bc3daf7b618cc097cd8",
+              "64225bc3daf7b618cc097cd9",
+              "64225bc3daf7b618cc097cda",
+              "64225bc3daf7b618cc097cdb",
+              "64225bc3daf7b618cc097cdc",
+              "64225bc3daf7b618cc097cdd",
+              "64225bc3daf7b618cc097cde",
+              "64225bc3daf7b618cc097cdf",
+              "64225bc3daf7b618cc097ce0",
+              "64225bc3daf7b618cc097ce1",
+              "64225bc3daf7b618cc097ce2",
+              "64225bc3daf7b618cc097ce3",
+              "64225bc3daf7b618cc097ce4",
+              "64225bc3daf7b618cc097ce5",
+              "64225bc3daf7b618cc097ce6",
+              "64225bc3daf7b618cc097ce7",
+              "64225bc3daf7b618cc097ce8",
+              "64225bc3daf7b618cc097ce9",
+              "64225bc3daf7b618cc097cea",
+              "64225bc3daf7b618cc097ceb",
+              "64225bc3daf7b618cc097cec",
+              "64225bc3daf7b618cc097ced",
+              "64225bc3daf7b618cc097cee",
+              "64225bc3daf7b618cc097cef",
+              "64225bc3daf7b618cc097cf0",
+              "64225bc3daf7b618cc097cf1",
+              "64225bc3daf7b618cc097cf2",
+              "64225bc3daf7b618cc097cf3",
+              "64225bc3daf7b618cc097cf4",
+              "64225bc3daf7b618cc097cf5",
+              "64225bc3daf7b618cc097cf6",
+              "64225bc3daf7b618cc097cf7",
+              "64225bc3daf7b618cc097cf8",
+              "64225bc3daf7b618cc097cf9",
+              "64225bc3daf7b618cc097cfa",
+              "64225bc3daf7b618cc097cfb",
+              "64225bc3daf7b618cc097cfc",
+              "64225bc3daf7b618cc097cfd",
+              "64225bc3daf7b618cc097cfe",
+              "64225bc3daf7b618cc097cff",
+              "64225bc3daf7b618cc097d00",
+              "64225bc3daf7b618cc097d01",
+              "64225bc3daf7b618cc097d02",
+              "64225bc3daf7b618cc097d03",
+              "64225bc3daf7b618cc097d04",
+              "64225bc3daf7b618cc097d05",
+              "64225bc3daf7b618cc097d06",
+              "64225bc3daf7b618cc097d07",
+              "64225bc3daf7b618cc097d08",
+              "64225bc3daf7b618cc097d09",
+              "64225bc3daf7b618cc097d0a",
+              "64225bc3daf7b618cc097d0b",
+              "64225bc3daf7b618cc097d0c",
+              "64225bc3daf7b618cc097d0d",
+              "64225bc3daf7b618cc097d0e",
+              "64225bc3daf7b618cc097d0f",
+              "64225bc3daf7b618cc097d10",
+              "64225bc3daf7b618cc097d11",
+              "64225bc3daf7b618cc097d12",
+              "64225bc3daf7b618cc097d13",
+              "64225bc3daf7b618cc097d14",
+              "64225bc3daf7b618cc097d15",
+              "64225bc3daf7b618cc097d16",
+              "64225bc3daf7b618cc097d17",
+              "64225bc3daf7b618cc097d18",
+              "64225bc3daf7b618cc097d19",
+              "64225bc3daf7b618cc097d1a",
+              "64225bc3daf7b618cc097d1b",
+              "64225bc3daf7b618cc097d1c",
+              "64225bc3daf7b618cc097d1d",
+              "64225bc3daf7b618cc097d1e",
+              "64225bc3daf7b618cc097d1f",
+              "64225bc3daf7b618cc097d20",
+              "64225bc3daf7b618cc097d21",
+              "64225bc3daf7b618cc097d22",
+              "64225bc3daf7b618cc097d23",
+              "64225bc3daf7b618cc097d24",
+              "64225bc3daf7b618cc097d25",
+              "64225bc3daf7b618cc097d26",
+              "64225bc3daf7b618cc097d27",
+              "64225bc3daf7b618cc097d28",
+              "64225bc3daf7b618cc097d29",
+              "64225bc3daf7b618cc097d2a",
+              "64225bc3daf7b618cc097d2b",
+              "64225bc3daf7b618cc097d2c",
+              "64225bc3daf7b618cc097d2d",
+              "64225bc3daf7b618cc097d2e",
+              "64225bc3daf7b618cc097d2f",
+              "64225bc3daf7b618cc097d30",
+              "6887b5e2d93268a8fbb998a5"
+            ],
+            "description": "ObjectId (24 caracteres hexadecimales)."
+          },
+          "claimPlateEntity": {
+            "type": "string",
+            "enum": [
+              "64225bc3daf7b618cc097cd1",
+              "64225bc3daf7b618cc097cd2",
+              "64225bc3daf7b618cc097cd3",
+              "64225bc3daf7b618cc097cd4",
+              "64225bc3daf7b618cc097cd5",
+              "64225bc3daf7b618cc097cd6",
+              "64225bc3daf7b618cc097cd7",
+              "64225bc3daf7b618cc097cd8",
+              "64225bc3daf7b618cc097cd9",
+              "64225bc3daf7b618cc097cda",
+              "64225bc3daf7b618cc097cdb",
+              "64225bc3daf7b618cc097cdc",
+              "64225bc3daf7b618cc097cdd",
+              "64225bc3daf7b618cc097cde",
+              "64225bc3daf7b618cc097cdf",
+              "64225bc3daf7b618cc097ce0",
+              "64225bc3daf7b618cc097ce1",
+              "64225bc3daf7b618cc097ce2",
+              "64225bc3daf7b618cc097ce3",
+              "64225bc3daf7b618cc097ce4",
+              "64225bc3daf7b618cc097ce5",
+              "64225bc3daf7b618cc097ce6",
+              "64225bc3daf7b618cc097ce7",
+              "64225bc3daf7b618cc097ce8",
+              "64225bc3daf7b618cc097ce9",
+              "64225bc3daf7b618cc097cea",
+              "64225bc3daf7b618cc097ceb",
+              "64225bc3daf7b618cc097cec",
+              "64225bc3daf7b618cc097ced",
+              "64225bc3daf7b618cc097cee",
+              "64225bc3daf7b618cc097cef",
+              "64225bc3daf7b618cc097cf0",
+              "64225bc3daf7b618cc097cf1",
+              "64225bc3daf7b618cc097cf2",
+              "64225bc3daf7b618cc097cf3",
+              "64225bc3daf7b618cc097cf4",
+              "64225bc3daf7b618cc097cf5",
+              "64225bc3daf7b618cc097cf6",
+              "64225bc3daf7b618cc097cf7",
+              "64225bc3daf7b618cc097cf8",
+              "64225bc3daf7b618cc097cf9",
+              "64225bc3daf7b618cc097cfa",
+              "64225bc3daf7b618cc097cfb",
+              "64225bc3daf7b618cc097cfc",
+              "64225bc3daf7b618cc097cfd",
+              "64225bc3daf7b618cc097cfe",
+              "64225bc3daf7b618cc097cff",
+              "64225bc3daf7b618cc097d00",
+              "64225bc3daf7b618cc097d01",
+              "64225bc3daf7b618cc097d02",
+              "64225bc3daf7b618cc097d03",
+              "64225bc3daf7b618cc097d04",
+              "64225bc3daf7b618cc097d05",
+              "64225bc3daf7b618cc097d06",
+              "64225bc3daf7b618cc097d07",
+              "64225bc3daf7b618cc097d08",
+              "64225bc3daf7b618cc097d09",
+              "64225bc3daf7b618cc097d0a",
+              "64225bc3daf7b618cc097d0b",
+              "64225bc3daf7b618cc097d0c",
+              "64225bc3daf7b618cc097d0d",
+              "64225bc3daf7b618cc097d0e",
+              "64225bc3daf7b618cc097d0f",
+              "64225bc3daf7b618cc097d10",
+              "64225bc3daf7b618cc097d11",
+              "64225bc3daf7b618cc097d12",
+              "64225bc3daf7b618cc097d13",
+              "64225bc3daf7b618cc097d14",
+              "64225bc3daf7b618cc097d15",
+              "64225bc3daf7b618cc097d16",
+              "64225bc3daf7b618cc097d17",
+              "64225bc3daf7b618cc097d18",
+              "64225bc3daf7b618cc097d19",
+              "64225bc3daf7b618cc097d1a",
+              "64225bc3daf7b618cc097d1b",
+              "64225bc3daf7b618cc097d1c",
+              "64225bc3daf7b618cc097d1d",
+              "64225bc3daf7b618cc097d1e",
+              "64225bc3daf7b618cc097d1f",
+              "64225bc3daf7b618cc097d20",
+              "64225bc3daf7b618cc097d21",
+              "64225bc3daf7b618cc097d22",
+              "64225bc3daf7b618cc097d23",
+              "64225bc3daf7b618cc097d24",
+              "64225bc3daf7b618cc097d25",
+              "64225bc3daf7b618cc097d26",
+              "64225bc3daf7b618cc097d27",
+              "64225bc3daf7b618cc097d28",
+              "64225bc3daf7b618cc097d29",
+              "64225bc3daf7b618cc097d2a",
+              "64225bc3daf7b618cc097d2b",
+              "64225bc3daf7b618cc097d2c",
+              "64225bc3daf7b618cc097d2d",
+              "64225bc3daf7b618cc097d2e",
+              "64225bc3daf7b618cc097d2f",
+              "64225bc3daf7b618cc097d30",
+              "6887b5e2d93268a8fbb998a5"
+            ],
+            "description": "ObjectId (24 caracteres hexadecimales)."
+          },
+          "claimNumber": {
+            "type": "string"
+          },
+          "claimDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "claimPlate": {
+            "type": "string"
+          },
+          "insuranceCompanyName": {
+            "type": "string"
+          },
+          "claimStatus": {
+            "type": "string"
+          },
+          "claimAmount": {
+            "type": "string"
+          },
+          "carfaxClaimType": {
+            "type": "string",
+            "enum": [
+              "Total Loss",
+              "Partial Damage",
+              "Stolen Vehicle",
+              "Third Party Claim"
+            ]
+          },
+          "insuranceClaimType": {
+            "type": "string",
+            "enum": [
+              "Honorarios y Gastos",
+              "Accidentes al Conductor",
+              "Asistencia Vial",
+              "Auto GAP GTI",
+              "Daños Cristales",
+              "Daños Materiales Parciales",
+              "Deducible",
+              "Defensa Juridica Asegurado",
+              "Devolucion Auto Sustituto",
+              "Devolucion de Prima",
+              "Dividendo / Bonificacion",
+              "Garantia Sobre Ruedas",
+              "Lesiones Ocupantes",
+              "Pago Lesiones Sipac",
+              "Pago Material Sipac",
+              "Pagos Lesiones Tradicional",
+              "Pagos Material Tradicional",
+              "Perdida Total Por Daños",
+              "Perdida Total Tercero",
+              "Recuperacion Lesiones Sipac",
+              "Recuperacion Lesiones Trad",
+              "Recuperacion Material Sipac",
+              "Recuperacion Material Trad",
+              "Recuperacion Monetaria",
+              "Responsabilidad Civil Bienes",
+              "Responsabilidad Civil Inmueble",
+              "Responsabilidad Civil Personas",
+              "Responsabilidad Civil Usa",
+              "Responsabilidad Civil Viajero",
+              "Responsabilidad Daño Ecologico",
+              "Robo Parcial",
+              "Robo Total",
+              "Salvamento Por Daños Asegurado",
+              "Salvamento Por Daños Tercero"
+            ]
+          }
+        },
+        "required": [
+          "claimEntity",
+          "claimPlateEntity",
+          "claimNumber",
+          "claimDate",
+          "claimPlate",
+          "insuranceCompanyName",
+          "claimStatus",
+          "claimAmount",
+          "carfaxClaimType",
+          "insuranceClaimType"
+        ]
+      },
+      "labels": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "invoices": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string"
+          },
+          "rfcEmisor": {
+            "type": "string",
+            "minLength": 11,
+            "maxLength": 13
+          },
+          "rfcReceptor": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 13
+          },
+          "monto": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uuid",
+          "rfcEmisor",
+          "rfcReceptor",
+          "monto"
+        ]
+      },
+      "CarfaxMxDTO": {
+        "type": "object",
+        "properties": {
+          "VIN": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "insuranceData": {
+            "$ref": "#/components/schemas/InsurancePolicyComplementDto"
+          },
+          "claimData": {
+            "$ref": "#/components/schemas/InsuranceClaimDto"
+          },
+          "tramite": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "placa": {
+            "type": "string"
+          },
+          "invoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "VIN",
+          "insuranceData",
+          "claimData",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "placa",
+          "invoices"
+        ]
+      },
+      "EdoMexDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "placa": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 3,
+            "maxLength": 10,
+            "pattern": "^[a-zA-Z0-9]*$"
+          },
+          "entidad": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null,
+              "64225bc3daf7b618cc097cd1",
+              "64225bc3daf7b618cc097cd2",
+              "64225bc3daf7b618cc097cd3",
+              "64225bc3daf7b618cc097cd4",
+              "64225bc3daf7b618cc097cd5",
+              "64225bc3daf7b618cc097cd6",
+              "64225bc3daf7b618cc097cd7",
+              "64225bc3daf7b618cc097cd8",
+              "64225bc3daf7b618cc097cd9",
+              "64225bc3daf7b618cc097cda",
+              "64225bc3daf7b618cc097cdb",
+              "64225bc3daf7b618cc097cdc",
+              "64225bc3daf7b618cc097cdd",
+              "64225bc3daf7b618cc097cde",
+              "64225bc3daf7b618cc097cdf",
+              "64225bc3daf7b618cc097ce0",
+              "64225bc3daf7b618cc097ce1",
+              "64225bc3daf7b618cc097ce2",
+              "64225bc3daf7b618cc097ce3",
+              "64225bc3daf7b618cc097ce4",
+              "64225bc3daf7b618cc097ce5",
+              "64225bc3daf7b618cc097ce6",
+              "64225bc3daf7b618cc097ce7",
+              "64225bc3daf7b618cc097ce8",
+              "64225bc3daf7b618cc097ce9",
+              "64225bc3daf7b618cc097cea",
+              "64225bc3daf7b618cc097ceb",
+              "64225bc3daf7b618cc097cec",
+              "64225bc3daf7b618cc097ced",
+              "64225bc3daf7b618cc097cee",
+              "64225bc3daf7b618cc097cef",
+              "64225bc3daf7b618cc097cf0",
+              "64225bc3daf7b618cc097cf1",
+              "64225bc3daf7b618cc097cf2",
+              "64225bc3daf7b618cc097cf3",
+              "64225bc3daf7b618cc097cf4",
+              "64225bc3daf7b618cc097cf5",
+              "64225bc3daf7b618cc097cf6",
+              "64225bc3daf7b618cc097cf7",
+              "64225bc3daf7b618cc097cf8",
+              "64225bc3daf7b618cc097cf9",
+              "64225bc3daf7b618cc097cfa",
+              "64225bc3daf7b618cc097cfb",
+              "64225bc3daf7b618cc097cfc",
+              "64225bc3daf7b618cc097cfd",
+              "64225bc3daf7b618cc097cfe",
+              "64225bc3daf7b618cc097cff",
+              "64225bc3daf7b618cc097d00",
+              "64225bc3daf7b618cc097d01",
+              "64225bc3daf7b618cc097d02",
+              "64225bc3daf7b618cc097d03",
+              "64225bc3daf7b618cc097d04",
+              "64225bc3daf7b618cc097d05",
+              "64225bc3daf7b618cc097d06",
+              "64225bc3daf7b618cc097d07",
+              "64225bc3daf7b618cc097d08",
+              "64225bc3daf7b618cc097d09",
+              "64225bc3daf7b618cc097d0a",
+              "64225bc3daf7b618cc097d0b",
+              "64225bc3daf7b618cc097d0c",
+              "64225bc3daf7b618cc097d0d",
+              "64225bc3daf7b618cc097d0e",
+              "64225bc3daf7b618cc097d0f",
+              "64225bc3daf7b618cc097d10",
+              "64225bc3daf7b618cc097d11",
+              "64225bc3daf7b618cc097d12",
+              "64225bc3daf7b618cc097d13",
+              "64225bc3daf7b618cc097d14",
+              "64225bc3daf7b618cc097d15",
+              "64225bc3daf7b618cc097d16",
+              "64225bc3daf7b618cc097d17",
+              "64225bc3daf7b618cc097d18",
+              "64225bc3daf7b618cc097d19",
+              "64225bc3daf7b618cc097d1a",
+              "64225bc3daf7b618cc097d1b",
+              "64225bc3daf7b618cc097d1c",
+              "64225bc3daf7b618cc097d1d",
+              "64225bc3daf7b618cc097d1e",
+              "64225bc3daf7b618cc097d1f",
+              "64225bc3daf7b618cc097d20",
+              "64225bc3daf7b618cc097d21",
+              "64225bc3daf7b618cc097d22",
+              "64225bc3daf7b618cc097d23",
+              "64225bc3daf7b618cc097d24",
+              "64225bc3daf7b618cc097d25",
+              "64225bc3daf7b618cc097d26",
+              "64225bc3daf7b618cc097d27",
+              "64225bc3daf7b618cc097d28",
+              "64225bc3daf7b618cc097d29",
+              "64225bc3daf7b618cc097d2a",
+              "64225bc3daf7b618cc097d2b",
+              "64225bc3daf7b618cc097d2c",
+              "64225bc3daf7b618cc097d2d",
+              "64225bc3daf7b618cc097d2e",
+              "64225bc3daf7b618cc097d2f",
+              "64225bc3daf7b618cc097d30"
+            ]
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "labels",
+          "placa",
+          "entidad",
+          "facturas"
+        ]
+      },
+      "GuanajuatoDTO": {
+        "type": "object",
+        "properties": {
+          "VIN": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "placa": {
+            "type": "string"
+          },
+          "entidadEmplacado": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "VIN",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "placa",
+          "entidadEmplacado"
+        ]
+      },
+      "NuevoLeonDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": "string",
+            "enum": [
+              "672fa906b2dc1f7f172b1de9",
+              "672fa90ab2dc1f7f172b1dea",
+              "672fa910b2dc1f7f172b1deb",
+              "672fa923b2dc1f7f172b1dec",
+              "672fa924b2dc1f7f172b1ded",
+              "672fa926b2dc1f7f172b1dee",
+              "672fa928b2dc1f7f172b1def",
+              "672fa92ab2dc1f7f172b1df0",
+              "672fa92cb2dc1f7f172b1df1",
+              "672fa92eb2dc1f7f172b1df2",
+              "672fa931b2dc1f7f172b1df3",
+              "672fa933b2dc1f7f172b1df4",
+              "672fa935b2dc1f7f172b1df5"
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "facturas"
+        ]
+      },
+      "bajaCaliforniaDTO": {
+        "type": "object",
+        "properties": {
+          "VIN": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          }
+        },
+        "required": [
+          "VIN"
+        ]
+      },
+      "QueretaroDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "facturas"
+        ]
+      },
+      "CoahuilaDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "facturas"
+        ]
+      },
+      "CoahuilaDTOTramite": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": "string",
+            "enum": [
+              "63e858c3daba0d1e734f0110",
+              "674901e1217c219b460f11d9",
+              "674901e1217c219b460f11da",
+              "674901e1217c219b460f11db",
+              "674901e1217c219b460f11dc",
+              "674901e1217c219b460f11dd",
+              "674901e1217c219b460f11de",
+              "674901e1217c219b460f11df",
+              "674901e1217c219b460f11e0",
+              "674901e1217c219b460f11e1",
+              "63e858a3b0d05e13f7cd9824",
+              "63e858a7348307d15383b9f0",
+              "63e858aeb0cc656f14956304",
+              "63e858b24f074d15ce2dc1b7",
+              "63e858badf96d5f5815a9552",
+              "63e858be97cf3b14945febc7"
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "facturas"
+        ]
+      },
+      "BajaCaliforniaSuroDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "facturas"
+        ]
+      },
+      "Quintana_Roo_DTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "63ea5e1f5e573d541354d29d",
+              "63e85453534cc79bbe0396f4",
+              "63e854484fb20c2e6d55385f",
+              "63e85459240e14a33129f957",
+              "63e8546e4f9dacc69454dbd5",
+              "63e8544dc1c7633eab5aee90",
+              "63e8545ef3c3a447ba6b96fe",
+              "63e854646171e749c43609a1",
+              "63e854691fe8b03ed0cf149a",
+              "63e855468404c5edcd6dc246",
+              null
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "nidDrupal",
+          "facturas"
+        ]
+      },
+      "CdMxDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "tramite": {
+            "type": "string",
+            "enum": [
+              "663bbef14901cb521b5440b4",
+              "663bbef712eed230e58d1070"
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "tramite",
+          "labels",
+          "facturas"
+        ]
+      },
+      "RepuveDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "nidDrupal": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "vin",
+          "labels",
+          "nidDrupal"
+        ]
+      },
+      "SiadeconsrvDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17,
+            "pattern": "^[a-zA-Z0-9]*$"
+          },
+          "placa": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 3,
+            "maxLength": 10,
+            "pattern": "^[a-zA-Z0-9]*$"
+          },
+          "estado": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null,
+              "64225bc3daf7b618cc097cd1",
+              "64225bc3daf7b618cc097cd2",
+              "64225bc3daf7b618cc097cd3",
+              "64225bc3daf7b618cc097cd4",
+              "64225bc3daf7b618cc097cd5",
+              "64225bc3daf7b618cc097cd6",
+              "64225bc3daf7b618cc097cd7",
+              "64225bc3daf7b618cc097cd8",
+              "64225bc3daf7b618cc097cd9",
+              "64225bc3daf7b618cc097cda",
+              "64225bc3daf7b618cc097cdb",
+              "64225bc3daf7b618cc097cdc",
+              "64225bc3daf7b618cc097cdd",
+              "64225bc3daf7b618cc097cde",
+              "64225bc3daf7b618cc097cdf",
+              "64225bc3daf7b618cc097ce0",
+              "64225bc3daf7b618cc097ce1",
+              "64225bc3daf7b618cc097ce2",
+              "64225bc3daf7b618cc097ce3",
+              "64225bc3daf7b618cc097ce4",
+              "64225bc3daf7b618cc097ce5",
+              "64225bc3daf7b618cc097ce6",
+              "64225bc3daf7b618cc097ce7",
+              "64225bc3daf7b618cc097ce8",
+              "64225bc3daf7b618cc097ce9",
+              "64225bc3daf7b618cc097cea",
+              "64225bc3daf7b618cc097ceb",
+              "64225bc3daf7b618cc097cec",
+              "64225bc3daf7b618cc097ced",
+              "64225bc3daf7b618cc097cee",
+              "64225bc3daf7b618cc097cef",
+              "64225bc3daf7b618cc097cf0",
+              "64225bc3daf7b618cc097cf1",
+              "64225bc3daf7b618cc097cf2",
+              "64225bc3daf7b618cc097cf3",
+              "64225bc3daf7b618cc097cf4",
+              "64225bc3daf7b618cc097cf5",
+              "64225bc3daf7b618cc097cf6",
+              "64225bc3daf7b618cc097cf7",
+              "64225bc3daf7b618cc097cf8",
+              "64225bc3daf7b618cc097cf9",
+              "64225bc3daf7b618cc097cfa",
+              "64225bc3daf7b618cc097cfb",
+              "64225bc3daf7b618cc097cfc",
+              "64225bc3daf7b618cc097cfd",
+              "64225bc3daf7b618cc097cfe",
+              "64225bc3daf7b618cc097cff",
+              "64225bc3daf7b618cc097d00",
+              "64225bc3daf7b618cc097d01",
+              "64225bc3daf7b618cc097d02",
+              "64225bc3daf7b618cc097d03",
+              "64225bc3daf7b618cc097d04",
+              "64225bc3daf7b618cc097d05",
+              "64225bc3daf7b618cc097d06",
+              "64225bc3daf7b618cc097d07",
+              "64225bc3daf7b618cc097d08",
+              "64225bc3daf7b618cc097d09",
+              "64225bc3daf7b618cc097d0a",
+              "64225bc3daf7b618cc097d0b",
+              "64225bc3daf7b618cc097d0c",
+              "64225bc3daf7b618cc097d0d",
+              "64225bc3daf7b618cc097d0e",
+              "64225bc3daf7b618cc097d0f",
+              "64225bc3daf7b618cc097d10",
+              "64225bc3daf7b618cc097d11",
+              "64225bc3daf7b618cc097d12",
+              "64225bc3daf7b618cc097d13",
+              "64225bc3daf7b618cc097d14",
+              "64225bc3daf7b618cc097d15",
+              "64225bc3daf7b618cc097d16",
+              "64225bc3daf7b618cc097d17",
+              "64225bc3daf7b618cc097d18",
+              "64225bc3daf7b618cc097d19",
+              "64225bc3daf7b618cc097d1a",
+              "64225bc3daf7b618cc097d1b",
+              "64225bc3daf7b618cc097d1c",
+              "64225bc3daf7b618cc097d1d",
+              "64225bc3daf7b618cc097d1e",
+              "64225bc3daf7b618cc097d1f",
+              "64225bc3daf7b618cc097d20",
+              "64225bc3daf7b618cc097d21",
+              "64225bc3daf7b618cc097d22",
+              "64225bc3daf7b618cc097d23",
+              "64225bc3daf7b618cc097d24",
+              "64225bc3daf7b618cc097d25",
+              "64225bc3daf7b618cc097d26",
+              "64225bc3daf7b618cc097d27",
+              "64225bc3daf7b618cc097d28",
+              "64225bc3daf7b618cc097d29",
+              "64225bc3daf7b618cc097d2a",
+              "64225bc3daf7b618cc097d2b",
+              "64225bc3daf7b618cc097d2c",
+              "64225bc3daf7b618cc097d2d",
+              "64225bc3daf7b618cc097d2e",
+              "64225bc3daf7b618cc097d2f",
+              "64225bc3daf7b618cc097d30"
+            ]
+          },
+          "aduana": {
+            "type": "string"
+          },
+          "cruce": {
+            "type": "string"
+          },
+          "kiosko": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "vin",
+          "placa",
+          "estado",
+          "aduana",
+          "cruce",
+          "kiosko",
+          "usuario"
+        ]
+      },
+      "AnapromexDTO": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          }
+        },
+        "required": [
+          "vin"
+        ]
+      },
+      "InternalDto": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "facturas"
+        ]
+      },
+      "CasDto": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 17
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/labels"
+            }
+          },
+          "placa": {
+            "type": "string"
+          },
+          "entidadFederativaPlaca": {
+            "type": "string"
+          },
+          "odometro": {
+            "type": "string"
+          },
+          "unidadesOdómetro": {
+            "type": "string",
+            "enum": [
+              "KM",
+              "MI"
+            ]
+          },
+          "facturas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/invoices"
+            }
+          }
+        },
+        "required": [
+          "vin",
+          "labels",
+          "placa",
+          "entidadFederativaPlaca",
+          "odometro",
+          "unidadesOdómetro",
+          "facturas"
+        ]
+      },
+      "DealerConsultaEstadoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "65f1a2b3c4d5e6f708192a3b"
+          },
+          "vin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "1HGBH41JXMN109186"
+          },
+          "listo": {
+            "type": "boolean",
+            "description": "`true` cuando el reporte ya puede leerse.",
+            "example": true
+          },
+          "estado": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Estado de procesamiento del reporte.",
+            "example": "Respuesta"
+          },
+          "resultado": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Resultado de la consulta (p. ej. Efectiva, Repetida, Sin información).",
+            "example": "Efectiva"
+          },
+          "horaConsulta": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-10-28T15:00:00.000Z"
+          },
+          "horaRespuesta": {
+            "format": "date-time",
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-10-28T15:01:30.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "vin",
+          "listo",
+          "estado",
+          "horaConsulta"
+        ]
+      },
+      "DealerVehiculoDto": {
+        "type": "object",
+        "properties": {
+          "vin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "1HGBH41JXMN109186"
+          },
+          "marca": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "HONDA"
+          },
+          "modelo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "ACCORD"
+          },
+          "anioModelo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "1991"
+          },
+          "fabricante": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clase": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tipo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "paisDeOrigen": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "plantaDeEnsamble": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "numeroDePuertas": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "numeroDeCilindros": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "desplazamiento": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "vin",
+          "marca",
+          "modelo",
+          "anioModelo",
+          "fabricante",
+          "clase",
+          "tipo",
+          "version",
+          "paisDeOrigen",
+          "plantaDeEnsamble",
+          "numeroDePuertas",
+          "numeroDeCilindros",
+          "desplazamiento"
+        ]
+      },
+      "DealerSemaforoGeneralDto": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "type": "string",
+            "description": "verde | amarillo | rojo | gris",
+            "example": "verde"
+          },
+          "codigo": {
+            "type": "number",
+            "description": "Valor del semáforo: 1 = Verde: sin hallazgos; 2 = Amarillo: hallazgos a revisar; 3 = Rojo: hallazgos relevantes; 4 = Rojo crítico; 99 = Gris: no evaluable (sin información o fuente no disponible).",
+            "example": 1
+          },
+          "mensaje": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "color",
+          "codigo",
+          "mensaje"
+        ]
+      },
+      "DealerSemaforoDto": {
+        "type": "object",
+        "properties": {
+          "fuente": {
+            "type": "string",
+            "description": "Fuente evaluada (p. ej. REPUVE, PLACAS, ROBO, CARFAX).",
+            "example": "REPUVE"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Verde"
+          },
+          "valor": {
+            "type": "number",
+            "description": "Valor del semáforo: 1 = Verde: sin hallazgos; 2 = Amarillo: hallazgos a revisar; 3 = Rojo: hallazgos relevantes; 4 = Rojo crítico; 99 = Gris: no evaluable (sin información o fuente no disponible).",
+            "example": 1
+          },
+          "encabezado": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "descripcion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "observacion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "fuente",
+          "color",
+          "valor",
+          "encabezado",
+          "descripcion",
+          "observacion"
+        ]
+      },
+      "DealerResumenFuenteDto": {
+        "type": "object",
+        "properties": {
+          "valor": {
+            "type": "number",
+            "description": "Valor del semáforo: 1 = Verde: sin hallazgos; 2 = Amarillo: hallazgos a revisar; 3 = Rojo: hallazgos relevantes; 4 = Rojo crítico; 99 = Gris: no evaluable (sin información o fuente no disponible).",
+            "example": 1
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Verde"
+          },
+          "titulo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "valor",
+          "color",
+          "titulo"
+        ]
+      },
+      "DealerResumenDto": {
+        "type": "object",
+        "properties": {
+          "robo": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "placas": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "historialUsa": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "repuve": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "pedimentos": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "facturas": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "usoVehicular": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "adeudos": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "financiamiento": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "amda": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "regularizacion": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          },
+          "delitosDiversos": {
+            "$ref": "#/components/schemas/DealerResumenFuenteDto"
+          }
+        },
+        "required": [
+          "robo",
+          "placas",
+          "historialUsa",
+          "repuve",
+          "pedimentos",
+          "facturas",
+          "usoVehicular",
+          "adeudos",
+          "financiamiento",
+          "amda",
+          "regularizacion",
+          "delitosDiversos"
+        ]
+      },
+      "DealerInterpretacionDto": {
+        "type": "object",
+        "properties": {
+          "semaforoGeneral": {
+            "$ref": "#/components/schemas/DealerSemaforoGeneralDto"
+          },
+          "semaforos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealerSemaforoDto"
+            }
+          },
+          "resumen": {
+            "$ref": "#/components/schemas/DealerResumenDto"
+          }
+        },
+        "required": [
+          "semaforoGeneral",
+          "semaforos",
+          "resumen"
+        ]
+      },
+      "DealerReporteDto": {
+        "type": "object",
+        "properties": {
+          "consulta": {
+            "$ref": "#/components/schemas/DealerConsultaEstadoDto"
+          },
+          "vehiculo": {
+            "$ref": "#/components/schemas/DealerVehiculoDto"
+          },
+          "interpretacion": {
+            "$ref": "#/components/schemas/DealerInterpretacionDto"
+          }
+        },
+        "required": [
+          "consulta",
+          "vehiculo",
+          "interpretacion"
+        ]
+      },
+      "DealerReporteResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Igual al código HTTP de la respuesta.",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje legible en inglés."
+          },
+          "_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Identificador del registro de auditoría de la transacción.",
+            "example": "65f1a2b3c4d5e6f708192a3c"
+          },
+          "error": {
+            "description": "Objeto vacío en éxito.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorObjectDto"
+              }
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DealerReporteDto"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "_id",
+          "error",
+          "data"
+        ]
+      },
+      "DealerReportePendienteDto": {
+        "type": "object",
+        "properties": {
+          "consulta": {
+            "$ref": "#/components/schemas/DealerConsultaEstadoDto"
+          }
+        },
+        "required": [
+          "consulta"
+        ]
+      },
+      "DealerReportePendienteResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Igual al código HTTP de la respuesta.",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje legible en inglés."
+          },
+          "_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Identificador del registro de auditoría de la transacción.",
+            "example": "65f1a2b3c4d5e6f708192a3c"
+          },
+          "error": {
+            "description": "Objeto vacío en éxito.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorObjectDto"
+              }
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DealerReportePendienteDto"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "_id",
+          "error",
+          "data"
+        ]
+      },
+      "DealerExtraDataDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "example": "folioInventario"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "example": "INV-000123"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ]
+      },
+      "DealerPrivacyConsentDto": {
+        "type": "object",
+        "properties": {
+          "folio": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Folio del consentimiento registrado por el dealer.",
+            "example": "AP-2026-000123"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "example": "2026-10-28T14:55:00.000Z"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "description": "Versión del aviso de privacidad aceptado.",
+            "example": "2026-01"
+          }
+        },
+        "required": [
+          "folio",
+          "acceptedAt"
+        ]
+      },
+      "DealerGeolocationDto": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90,
+            "example": 19.4326
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180,
+            "example": -99.1332
+          },
+          "accuracy": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Precisión en metros.",
+            "example": 12.5
+          },
+          "capturedAt": {
+            "type": "string",
+            "example": "2026-10-28T15:00:00.000Z"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ]
+      },
+      "DealerInvoiceDto": {
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Folio fiscal (UUID) del CFDI.",
+            "example": "123e4567-e89b-42d3-a456-426614174000"
+          },
+          "rfcEmisor": {
+            "type": "string",
+            "example": "XAXX010101000",
+            "minLength": 12,
+            "maxLength": 13
+          },
+          "rfcReceptor": {
+            "type": "string",
+            "example": "XEXX010101000",
+            "minLength": 12,
+            "maxLength": 13
+          },
+          "monto": {
+            "type": "string",
+            "description": "Monto con hasta dos decimales, como texto.",
+            "example": "250000.00"
+          }
+        },
+        "required": [
+          "uuid",
+          "rfcEmisor",
+          "rfcReceptor",
+          "monto"
+        ]
+      },
+      "DealerConsultaDto": {
+        "type": "object",
+        "properties": {
+          "VIN": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 17,
+            "pattern": "^[A-Z0-9]+$",
+            "description": "Número de identificación vehicular (VIN/NIV), 5 a 17 caracteres alfanuméricos. Se normaliza a mayúsculas.",
+            "example": "1HGBH41JXMN109186"
+          },
+          "plate": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 10,
+            "pattern": "^[A-Z0-9]+$",
+            "description": "Placa actual del vehículo, sin guiones ni espacios. Se normaliza a mayúsculas.",
+            "example": "ABC1234"
+          },
+          "odometer": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9999999,
+            "description": "Lectura del odómetro (entero).",
+            "example": 45200
+          },
+          "odometerUnits": {
+            "enum": [
+              "KM",
+              "MI"
+            ],
+            "type": "string",
+            "example": "KM"
+          },
+          "odometerDate": {
+            "type": "string",
+            "description": "Fecha de la lectura del odómetro (ISO 8601, no futura).",
+            "example": "2026-10-28T14:50:00.000Z"
+          },
+          "extraData": {
+            "description": "Pares clave/valor del dealer (puede ir vacío). Máximo 20.",
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealerExtraDataDto"
+            }
+          },
+          "entityPlate": {
+            "type": "string",
+            "enum": [
+              "64225bc3daf7b618cc097cd1",
+              "64225bc3daf7b618cc097cd2",
+              "64225bc3daf7b618cc097cd3",
+              "64225bc3daf7b618cc097cd4",
+              "64225bc3daf7b618cc097cd5",
+              "64225bc3daf7b618cc097cd6",
+              "64225bc3daf7b618cc097cd7",
+              "64225bc3daf7b618cc097cd8",
+              "64225bc3daf7b618cc097cd9",
+              "64225bc3daf7b618cc097cda",
+              "64225bc3daf7b618cc097cdb",
+              "64225bc3daf7b618cc097cdc",
+              "64225bc3daf7b618cc097cdd",
+              "64225bc3daf7b618cc097cde",
+              "64225bc3daf7b618cc097cdf",
+              "64225bc3daf7b618cc097ce0",
+              "64225bc3daf7b618cc097ce1",
+              "64225bc3daf7b618cc097ce2",
+              "64225bc3daf7b618cc097ce3",
+              "64225bc3daf7b618cc097ce4",
+              "64225bc3daf7b618cc097ce5",
+              "64225bc3daf7b618cc097ce6",
+              "64225bc3daf7b618cc097ce7",
+              "64225bc3daf7b618cc097ce8",
+              "64225bc3daf7b618cc097ce9",
+              "64225bc3daf7b618cc097cea",
+              "64225bc3daf7b618cc097ceb",
+              "64225bc3daf7b618cc097cec",
+              "64225bc3daf7b618cc097ced",
+              "64225bc3daf7b618cc097cee",
+              "64225bc3daf7b618cc097cef",
+              "64225bc3daf7b618cc097cf0",
+              "64225bc3daf7b618cc097cf1",
+              "64225bc3daf7b618cc097cf2",
+              "64225bc3daf7b618cc097cf3",
+              "64225bc3daf7b618cc097cf4",
+              "64225bc3daf7b618cc097cf5",
+              "64225bc3daf7b618cc097cf6",
+              "64225bc3daf7b618cc097cf7",
+              "64225bc3daf7b618cc097cf8",
+              "64225bc3daf7b618cc097cf9",
+              "64225bc3daf7b618cc097cfa",
+              "64225bc3daf7b618cc097cfb",
+              "64225bc3daf7b618cc097cfc",
+              "64225bc3daf7b618cc097cfd",
+              "64225bc3daf7b618cc097cfe",
+              "64225bc3daf7b618cc097cff",
+              "64225bc3daf7b618cc097d00",
+              "64225bc3daf7b618cc097d01",
+              "64225bc3daf7b618cc097d02",
+              "64225bc3daf7b618cc097d03",
+              "64225bc3daf7b618cc097d04",
+              "64225bc3daf7b618cc097d05",
+              "64225bc3daf7b618cc097d06",
+              "64225bc3daf7b618cc097d07",
+              "64225bc3daf7b618cc097d08",
+              "64225bc3daf7b618cc097d09",
+              "64225bc3daf7b618cc097d0a",
+              "64225bc3daf7b618cc097d0b",
+              "64225bc3daf7b618cc097d0c",
+              "64225bc3daf7b618cc097d0d",
+              "64225bc3daf7b618cc097d0e",
+              "64225bc3daf7b618cc097d0f",
+              "64225bc3daf7b618cc097d10",
+              "64225bc3daf7b618cc097d11",
+              "64225bc3daf7b618cc097d12",
+              "64225bc3daf7b618cc097d13",
+              "64225bc3daf7b618cc097d14",
+              "64225bc3daf7b618cc097d15",
+              "64225bc3daf7b618cc097d16",
+              "64225bc3daf7b618cc097d17",
+              "64225bc3daf7b618cc097d18",
+              "64225bc3daf7b618cc097d19",
+              "64225bc3daf7b618cc097d1a",
+              "64225bc3daf7b618cc097d1b",
+              "64225bc3daf7b618cc097d1c",
+              "64225bc3daf7b618cc097d1d",
+              "64225bc3daf7b618cc097d1e",
+              "64225bc3daf7b618cc097d1f",
+              "64225bc3daf7b618cc097d20",
+              "64225bc3daf7b618cc097d21",
+              "64225bc3daf7b618cc097d22",
+              "64225bc3daf7b618cc097d23",
+              "64225bc3daf7b618cc097d24",
+              "64225bc3daf7b618cc097d25",
+              "64225bc3daf7b618cc097d26",
+              "64225bc3daf7b618cc097d27",
+              "64225bc3daf7b618cc097d28",
+              "64225bc3daf7b618cc097d29",
+              "64225bc3daf7b618cc097d2a",
+              "64225bc3daf7b618cc097d2b",
+              "64225bc3daf7b618cc097d2c",
+              "64225bc3daf7b618cc097d2d",
+              "64225bc3daf7b618cc097d2e",
+              "64225bc3daf7b618cc097d2f",
+              "64225bc3daf7b618cc097d30",
+              "6887b5e2d93268a8fbb998a5"
+            ],
+            "description": "Entidad federativa de la placa (ObjectId del catálogo de estados).",
+            "example": "64225bc3daf7b618cc097cd1"
+          },
+          "dealerID": {
+            "type": "string",
+            "description": "Sucursal/agencia del distribuidor (ObjectId de `userGroups`).",
+            "example": "66500000000000000000de01"
+          },
+          "carPhotos": {
+            "maxItems": 10,
+            "description": "URLs https de fotografías del vehículo (máx. 10).",
+            "example": [
+              "https://files.example.com/vehiculo/frente.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "carDocuments": {
+            "maxItems": 10,
+            "description": "URLs https de la documentación del vehículo (máx. 10).",
+            "example": [
+              "https://files.example.com/vehiculo/factura.pdf"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "identityDocuments": {
+            "maxItems": 10,
+            "description": "URLs https de la identificación del titular (máx. 10). Exige `privacyConsent`.",
+            "example": [
+              "https://files.example.com/titular/identificacion.pdf"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "privacyConsent": {
+            "description": "Obligatorio cuando se envían `identityDocuments`.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DealerPrivacyConsentDto"
+              }
+            ]
+          },
+          "geolocation": {
+            "$ref": "#/components/schemas/DealerGeolocationDto"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Versión del vehículo.",
+            "example": "EX-L"
+          },
+          "color": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "description": "Color del vehículo.",
+            "example": "Gris"
+          },
+          "purpose": {
+            "enum": [
+              "TOMA_A_CUENTA",
+              "COMPRA",
+              "VENTA",
+              "INVENTARIO",
+              "FINANCIAMIENTO",
+              "OTRO"
+            ],
+            "type": "string",
+            "description": "Motivo de la consulta.",
+            "example": "TOMA_A_CUENTA"
+          },
+          "requestedBy": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Usuario del dealer que realiza la consulta (id o correo).",
+            "example": "usr_0001"
+          },
+          "externalReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "Folio interno del dealer para conciliación.",
+            "example": "DL-000123"
+          },
+          "invoices": {
+            "maxItems": 10,
+            "description": "Facturas (CFDI) del vehículo; alimentan la fuente SAT. Máximo 10.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DealerInvoiceDto"
+            }
+          }
+        },
+        "required": [
+          "VIN",
+          "plate",
+          "odometer",
+          "odometerUnits",
+          "extraData",
+          "entityPlate",
+          "dealerID"
+        ]
+      },
+      "DealerConsultaRegistradaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador de la consulta. Úsalo en `obtenerReporte/:id`.",
+            "example": "65f1a2b3c4d5e6f708192a3b"
+          },
+          "vin": {
+            "type": "string",
+            "example": "1HGBH41JXMN109186"
+          },
+          "plate": {
+            "type": "string",
+            "example": "ABC1234"
+          },
+          "horaConsulta": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-10-28T15:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "vin",
+          "plate",
+          "horaConsulta"
+        ]
+      },
+      "DealerConsultaRegistradaResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "description": "Igual al código HTTP de la respuesta.",
+            "example": 201
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje legible en inglés."
+          },
+          "_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Identificador del registro de auditoría de la transacción.",
+            "example": "65f1a2b3c4d5e6f708192a3c"
+          },
+          "error": {
+            "description": "Objeto vacío en éxito.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorObjectDto"
+              }
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DealerConsultaRegistradaDto"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "_id",
+          "error",
+          "data"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "api-key": []
+    }
+  ]
+}

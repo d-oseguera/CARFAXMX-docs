@@ -1,0 +1,80 @@
+---
+title: "Primeros pasos"
+description: "Tu primera consulta de historial vehicular"
+icon: "rocket"
+groups: ["svc-ms-consulta-ws"]
+---
+
+Esta guía te lleva de cero a una consulta exitosa. El ejemplo usa el contrato de **dealers**; si consumes como entidad o institución, el flujo es el mismo pero con tu ruta y tu DTO (ver el grupo **Referencia de API** en la barra lateral).
+
+## Prerrequisitos
+
+- Una `Api-Key` vigente, emitida por CARFAX MX para tu organización.
+- La URL base del entorno (QA o producción), entregada junto con tu credencial. En los ejemplos se usa `<HOST>`.
+
+<Warning>
+  Tu `Api-Key` es confidencial: no la publiques, no la incluyas en código fuente y rota la credencial de inmediato si se expone.
+</Warning>
+
+## 1. Crea una consulta
+
+<Steps>
+  <Step title="Envía la solicitud">
+    ```bash
+    curl -X POST "https://<HOST>/api/dealers/<DEALER_SLUG>/nuevaConsulta" \
+      -H "Api-Key: <API_KEY>" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "VIN": "1HGBH41JXMN109186",
+        "plate": "ABC1234",
+        "odometer": 45200,
+        "odometerUnits": "KM",
+        "odometerDate": "2026-10-28T14:50:00.000Z",
+        "extraData": []
+      }'
+    ```
+
+    El VIN del ejemplo es sintético. `extraData` acepta hasta 20 pares clave/valor propios del dealer.
+  </Step>
+  <Step title="Guarda el identificador">
+    La respuesta `201` llega en el envelope estándar; conserva el identificador que viene en `data` para el siguiente paso. El `_id` del envelope es el folio de auditoría de la transacción.
+
+    ```json
+    {
+      "statusCode": 201,
+      "message": "…",
+      "_id": "<ID_AUDITORIA>",
+      "data": { "…": "identificador y estado de la consulta" },
+      "error": null
+    }
+    ```
+  </Step>
+  <Step title="Recupera el reporte">
+    El procesamiento es asíncrono: consulta el resultado cuando esté listo.
+
+    ```bash
+    curl "https://<HOST>/api/dealers/<DEALER_SLUG>/obtenerReporte/<ID>" \
+      -H "Api-Key: <API_KEY>"
+    ```
+
+    La respuesta entrega la vista reducida del reporte para dealers. Los esquemas exactos de solicitud y respuesta están en el grupo **Referencia de API** de la barra lateral.
+  </Step>
+</Steps>
+
+## Trazabilidad con `x-correlation-id`
+
+Puedes enviar el header opcional `x-correlation-id` (máximo 128 caracteres) para correlacionar tus llamadas con tus propios sistemas; el servicio lo devuelve en la respuesta. Si no lo envías, el servicio genera uno.
+
+```bash
+-H "x-correlation-id: pedido-2026-000123"
+```
+
+## Errores comunes al empezar
+
+| Síntoma | Causa probable |
+| --- | --- |
+| `401 Unauthorized` | `Api-Key` ausente, inactiva, expirada o inexistente |
+| `403` | Tu credencial no tiene el rol, la política o el distribuidor que exige la ruta |
+| `404` en dealers | El slug del path no corresponde a tu distribuidor |
+
+El detalle de códigos y contratos de error está en [Contratos y errores](/es/servicios/ms-consulta-ws/contratos-y-errores).

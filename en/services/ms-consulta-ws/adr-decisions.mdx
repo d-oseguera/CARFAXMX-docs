@@ -1,0 +1,36 @@
+---
+title: "Architecture decisions"
+description: "Summary of the service's active ADRs"
+icon: "scale-balanced"
+groups: ["svc-ms-consulta-ws"]
+---
+
+The service's architecture decisions are recorded as ADRs (MADR format) in the `docs/adr/` folder of the `CARFAXMX-msConsultaWs` repository. This is a summary of the active ones; the full text and context live in the repo.
+
+<AccordionGroup>
+  <Accordion title="ADR-0001 — Container without nginx or pm2">
+    The container runs Node directly with `tini` as PID 1. nginx and pm2 are removed from the image: routing and resilience come from the platform (Kubernetes), not the container.
+  </Accordion>
+  <Accordion title="ADR-0002 — Protected documentation endpoint">
+    `/internal/v1/docs` requires an `Api-Key` with an admin role. The Swagger UI (`/internal/v1/docs/ui`) is only enabled outside production, behind its own Basic Auth.
+  </Accordion>
+  <Accordion title="ADR-0003 — Envelope only on new routes">
+    The standard envelope `{statusCode, message, _id, data, error}` applies only to new routes (`/internal/*`, `/api/dealers/*`). Legacy routes keep their historical contract because existing consumers depend on that exact shape.
+  </Accordion>
+  <Accordion title="ADR-0004 — Api-Key masking in the audit trail">
+    The `Api-Key` is never recorded in full: it's masked in logs and persisted as a hash in audit records.
+  </Accordion>
+  <Accordion title="ADR-0005 — Per-request logger on Fastify">
+    Each request gets its own logger instance (pino), eliminating a shared-state problem between concurrent requests.
+  </Accordion>
+  <Accordion title="ADR-0006 — Dealers by slug and configurable queue">
+    Dealers are identified by a slug in the path, and each distributor defines its own processing queue in its configuration.
+  </Accordion>
+  <Accordion title="ADR-0007 — Dealer query contract and attachments">
+    Defines the dealer query DTO and establishes that attachments travel as `https` URLs, not embedded binaries.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  ADRs are immutable once accepted: a change of decision is recorded as a new ADR that supersedes the previous one.
+</Note>

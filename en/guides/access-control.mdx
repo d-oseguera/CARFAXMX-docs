@@ -1,0 +1,99 @@
+---
+title: "Access control"
+description: "Internal runbook: how we manage who sees what on this site"
+icon: "lock"
+groups: ["docs-admin"]
+---
+
+This runbook is for site administrators. It describes the two-phase access model and the operational steps for each phase.
+
+## Model
+
+| Phase | Mintlify plan | Scope |
+| --- | --- | --- |
+| **Phase 1 (current)** | Free | Fully private site: only members of the Mintlify organization can sign in. Everyone sees everything. |
+| **Phase 2** | Enterprise | JWT authentication with CARFAX MX's own login. Each user receives `svc-<service>` groups and only sees the pages for their services. |
+
+The content structure is already prepared for Phase 2: every service page carries `groups: ["svc-<service>"]` in its frontmatter and every operation in the OpenAPI spec carries `x-mint.groups`. Until group-based authentication is active, those fields are inert and don't affect rendering.
+
+## Phase 1 — Private site (today)
+
+<Steps>
+  <Step title="Enable private visibility">
+    In the Mintlify dashboard: **Settings → Access** → Visibility **Private** → Method **Authenticated**. Save.
+  </Step>
+  <Step title="Add readers">
+    **Settings → Members**: invite each person who should see the documentation by email. There is no granularity in this phase: every member sees the whole site.
+  </Step>
+  <Step title="Delete public previews">
+    When enabling authentication, accept the **Delete public** option so earlier previews stop being public.
+  </Step>
+</Steps>
+
+<Warning>
+  During Phase 1, don't publish content that **any** organization member shouldn't see. Per-service granularity only exists in Phase 2.
+</Warning>
+
+## Phase 2 — Per-user granularity (Enterprise + JWT)
+
+The CARFAX MX login signs a JWT with **EdDSA** (private key generated in the Mintlify dashboard) and redirects the reader to:
+
+```
+https://<DOCS_HOST>/login/jwt-callback#<JWT>
+```
+
+JWT claims:
+
+| Claim | Content |
+| --- | --- |
+| `host` | Must exactly match the documentation domain |
+| `sub` | Stable, opaque user identifier (no personal data) |
+| `groups` | The user's groups, e.g. `["svc-ms-consulta-ws"]` |
+| `expiresAt` | Session end (epoch seconds) |
+| `exp` | Token expiry: **10 seconds or less** |
+
+<Note>
+  The EdDSA private key is stored in the secrets manager (Key Vault), never in code or in this repository.
+</Note>
+
+### Group convention
+
+| Group | Sees |
+| --- | --- |
+| `svc-<service>` (e.g. `svc-ms-consulta-ws`) | That service's pages and endpoints |
+| `docs-admin` | Internal runbooks like this page |
+| *(no groups)* | Only the shared pages (home) |
+
+To assign services to a user, include the corresponding groups in the `groups` claim issued by the login. A user without the group gets a **404** on the service's pages and doesn't see them in navigation or search.
+
+### Activation checklist
+
+<Steps>
+  <Step title="Purchase Enterprise and configure JWT">
+    Dashboard: **Settings → Access** → Visibility **Private** → Method **Custom → JWT**. Configure the login URL and generate the private key.
+  </Step>
+  <Step title="Implement the JWT issuer">
+    The CARFAX MX login service resolves the user's groups (by contracted/assigned service), signs the token, and redirects to the callback.
+  </Step>
+  <Step title="Verify granularity">
+    With a test user lacking `svc-ms-consulta-ws`, confirm the service pages return 404 and don't appear in navigation or search.
+  </Step>
+</Steps>
+
+## Local verification
+
+The CLI can simulate readers with and without groups:
+
+```bash
+npx mint@latest dev --no-open                           # signed-out view
+npx mint@latest dev --signed-in --no-open               # signed in, no groups
+npx mint@latest dev --groups svc-ms-consulta-ws --no-open  # with the service group
+npx mint@latest validate --groups docs-admin            # validate with mocked groups
+```
+
+## Onboarding a new service
+
+1. Add the entry in `scripts/sync-openapi.mjs` (name, `svc-<service>` group, paths) and run it.
+2. Create the `es/servicios/<service>/` and `en/services/<service>/` pages with `groups: ["svc-<service>"]` frontmatter.
+3. Add the service tab in both languages in `docs.json`.
+4. In Phase 2: include the new group in the JWT issuer for authorized users.

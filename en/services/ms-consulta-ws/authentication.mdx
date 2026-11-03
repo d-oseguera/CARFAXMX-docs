@@ -1,0 +1,50 @@
+---
+title: "Authentication and authorization"
+description: "How the Api-Key works and what the service validates on every call"
+icon: "key"
+groups: ["svc-ms-consulta-ws"]
+---
+
+Every route in the service requires the **`Api-Key`** header, with a single exception: `GET /health`.
+
+```bash
+curl "https://<HOST>/api/entidades/edomex/obtenerReporte/<ID>" \
+  -H "Api-Key: <API_KEY>"
+```
+
+## What the service validates
+
+Each call is evaluated against four controls, in order:
+
+<Steps>
+  <Step title="Authentication (Api-Key)">
+    The credential is validated against the consumer registry. An inactive, expired, or unknown key produces `401 Unauthorized`.
+  </Step>
+  <Step title="Roles">
+    Each route declares the roles it accepts. The existing roles are `entity`, `admin`, `superadmin`, `system`, `entitySimplifiedService`, and `Reporte Completo WS`. Legacy entity routes generally require `superadmin` or `Reporte Completo WS`.
+  </Step>
+  <Step title="Policies">
+    Policies (`WebService`, `Servicio Simplificado`) scope the type of service the consumer has contracted.
+  </Step>
+  <Step title="Distributor">
+    Each route accepts only its entity's distributors (plus `Local`). The distributor is derived from the `Api-Key`: it doesn't travel in the request.
+  </Step>
+</Steps>
+
+<Note>
+  There are no `userid`, `reporteid`, or `distributor` headers in this service: the consumer's entire identity is derived from the `Api-Key`.
+</Note>
+
+## Dealers: slug validation
+
+The `/api/dealers/{dealer}` routes add their own validation: the `Api-Key`'s distributor must be flagged as a dealer and the path slug must be its own. One dealer's key cannot operate under another dealer's slug.
+
+## Credential security
+
+- The `Api-Key` is **masked** in logs and stored as a hash in the audit trail: the full value is never recorded (ADR-0004).
+- The `401` always responds with a fixed message, with no detail about the reason, to avoid leaking credential information.
+- Rotate your credential immediately if you suspect exposure; request the rotation from the CARFAX MX team.
+
+## Audit and correlation
+
+Every transaction creates an audit record whose identifier (`_id`) travels in the response. Keep it: it's the folio CARFAX MX uses to trace your transaction end to end. The optional `x-correlation-id` header is propagated to logs and traces.

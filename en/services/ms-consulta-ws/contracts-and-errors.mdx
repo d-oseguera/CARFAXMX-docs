@@ -1,0 +1,87 @@
+---
+title: "Contracts and errors"
+description: "The service's two response contracts and the error code catalog"
+icon: "file-contract"
+groups: ["svc-ms-consulta-ws"]
+---
+
+The service maintains **two response contracts**. Which one applies depends on the route, not on your credential's version.
+
+## Legacy contract — entities and institutions
+
+The `/api/entidades/*`, `/api/instituciones/*`, and `/api/siadeconsrv/*` routes keep their historical contract **without an envelope** (decision recorded in ADR-0003: existing consumers depend on that exact shape).
+
+<Tabs>
+  <Tab title="nuevaConsulta">
+    ```json
+    {
+      "_id": "<ID>",
+      "node_reporte": "<REPORT_IDENTIFIER>",
+      "timestamp": "2026-10-28T14:50:00.000Z"
+    }
+    ```
+    The exact shape varies by entity; check your endpoint under the **API reference** group in the sidebar.
+  </Tab>
+  <Tab title="obtenerReporte">
+    ```json
+    {
+      "ready": true,
+      "data": { "…": "report contents" }
+    }
+    ```
+    With `ready: false` the report is still being processed: retry later.
+  </Tab>
+  <Tab title="Errors">
+    Standard HTTP exceptions with messages in Spanish. The `401` always uses the fixed text `Unauthorized. Without message.`.
+  </Tab>
+</Tabs>
+
+## Standard envelope — dealers and internal
+
+The `/api/dealers/*` and `/internal/*` routes use the CARFAX MX standard envelope:
+
+```json
+{
+  "statusCode": 201,
+  "message": "…",
+  "_id": "<AUDIT_ID>",
+  "data": { "…": "operation payload" },
+  "error": null
+}
+```
+
+On error, `data` is `null` and `error` carries a code and details:
+
+```json
+{
+  "statusCode": 422,
+  "message": "…",
+  "_id": "<AUDIT_ID>",
+  "data": null,
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "details": ["VIN must be longer than or equal to 5 characters"]
+  }
+}
+```
+
+### Error code catalog
+
+| Code | Meaning |
+| --- | --- |
+| `INVALID_PARAMETER` | The body or parameters fail validation |
+| `INVALID_API_KEY` | Credential missing, inactive, or unknown |
+| `ACCESS_DENIED` | The credential lacks the required role, policy, or distributor |
+| `NOT_FOUND` | The resource (report, query) doesn't exist |
+| `STATE_CONFLICT` | The operation isn't valid in the resource's current state |
+| `RATE_LIMIT_EXCEEDED` | The call limit was exceeded |
+| `INTERNAL_ERROR` | Unhandled service error |
+| `PROVIDER_ERROR` | A downstream provider responded with an error |
+| `PROVIDER_TIMEOUT` | A downstream provider didn't respond in time |
+| `SERVICE_UNAVAILABLE` | The service can't handle the request right now |
+
+## Request limits
+
+- Maximum body size: **1 MiB**.
+- Connection timeout: 100 seconds.
+- `x-correlation-id`: 128 characters max.

@@ -1,0 +1,36 @@
+---
+title: "Decisiones de arquitectura"
+description: "Resumen de los ADRs vigentes del servicio"
+icon: "scale-balanced"
+groups: ["svc-ms-consulta-ws"]
+---
+
+Las decisiones de arquitectura del servicio se registran como ADRs (formato MADR) en la carpeta `docs/adr/` del repositorio `CARFAXMX-msConsultaWs`. Este es el resumen de las vigentes; el texto completo y su contexto viven en el repo.
+
+<AccordionGroup>
+  <Accordion title="ADR-0001 — Contenedor sin nginx ni pm2">
+    El contenedor ejecuta Node directamente con `tini` como PID 1. Se eliminan nginx y pm2 de la imagen: el enrutamiento y la resiliencia los aporta la plataforma (Kubernetes), no el contenedor.
+  </Accordion>
+  <Accordion title="ADR-0002 — Endpoint de documentación protegido">
+    `/internal/v1/docs` exige `Api-Key` con rol de administrador. La Swagger UI (`/internal/v1/docs/ui`) solo se habilita fuera de producción y con Basic Auth propio.
+  </Accordion>
+  <Accordion title="ADR-0003 — Envelope solo en rutas nuevas">
+    El envelope estándar `{statusCode, message, _id, data, error}` aplica únicamente a rutas nuevas (`/internal/*`, `/api/dealers/*`). Las rutas legadas conservan su contrato histórico porque los consumidores existentes dependen de esa forma exacta.
+  </Accordion>
+  <Accordion title="ADR-0004 — Enmascarado de Api-Key en auditoría">
+    La `Api-Key` nunca se registra completa: se enmascara en logs y se persiste como hash en los registros de auditoría.
+  </Accordion>
+  <Accordion title="ADR-0005 — Logger por petición en Fastify">
+    Cada petición recibe su propia instancia de logger (pino), lo que elimina un problema de estado compartido entre peticiones concurrentes.
+  </Accordion>
+  <Accordion title="ADR-0006 — Dealers por slug y cola configurable">
+    Los dealers se identifican por slug en el path y cada distribuidor define su propia cola de procesamiento en su configuración.
+  </Accordion>
+  <Accordion title="ADR-0007 — Contrato de consulta de dealers y adjuntos">
+    Define el DTO de consulta de dealers y establece que los adjuntos viajan como URLs `https`, no como binarios embebidos.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Los ADRs son inmutables una vez aceptados: un cambio de decisión se registra como un ADR nuevo que reemplaza al anterior.
+</Note>

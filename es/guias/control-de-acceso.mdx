@@ -1,0 +1,99 @@
+---
+title: "Control de acceso"
+description: "Runbook interno: cómo se administra quién ve qué en este sitio"
+icon: "lock"
+groups: ["docs-admin"]
+---
+
+Este runbook es para administradores del sitio. Describe el modelo de acceso en dos fases y los pasos operativos de cada una.
+
+## Modelo
+
+| Fase | Plan de Mintlify | Alcance |
+| --- | --- | --- |
+| **Fase 1 (actual)** | Free | Sitio privado completo: solo miembros de la organización en Mintlify pueden entrar. Todos ven todo. |
+| **Fase 2** | Enterprise | Autenticación JWT con login propio de CARFAX MX. Cada usuario recibe grupos `svc-<servicio>` y solo ve las páginas de sus servicios. |
+
+La estructura de contenido ya está preparada para la Fase 2: toda página de servicio lleva `groups: ["svc-<servicio>"]` en su frontmatter y cada operación del spec OpenAPI lleva `x-mint.groups`. Mientras la autenticación por grupos no esté activa, esos campos son inertes y no afectan el render.
+
+## Fase 1 — Sitio privado (hoy)
+
+<Steps>
+  <Step title="Activa la visibilidad privada">
+    En el dashboard de Mintlify: **Settings → Access** → Visibility **Private** → Method **Authenticated**. Guarda.
+  </Step>
+  <Step title="Da de alta a los lectores">
+    **Settings → Members**: invita por correo a cada persona que deba ver la documentación. En esta fase no hay granularidad: todo miembro ve el sitio completo.
+  </Step>
+  <Step title="Elimina previews públicos">
+    Al activar la autenticación, acepta la opción **Delete public** para que los previews anteriores dejen de ser públicos.
+  </Step>
+</Steps>
+
+<Warning>
+  En la Fase 1 no publiques contenido que no pueda ver **cualquier** miembro de la organización. La granularidad por servicio solo existe en la Fase 2.
+</Warning>
+
+## Fase 2 — Granularidad por usuario (Enterprise + JWT)
+
+El login de CARFAX MX firma un JWT con **EdDSA** (clave privada generada en el dashboard de Mintlify) y redirige al lector a:
+
+```
+https://<DOCS_HOST>/login/jwt-callback#<JWT>
+```
+
+Claims del JWT:
+
+| Claim | Contenido |
+| --- | --- |
+| `host` | Debe coincidir exactamente con el dominio de la documentación |
+| `sub` | Identificador estable y opaco del usuario (sin datos personales) |
+| `groups` | Lista de grupos del usuario, p. ej. `["svc-ms-consulta-ws"]` |
+| `expiresAt` | Fin de la sesión (epoch en segundos) |
+| `exp` | Expiración del token: **10 segundos o menos** |
+
+<Note>
+  La clave privada EdDSA se guarda en el gestor de secretos (Key Vault), nunca en código ni en este repositorio.
+</Note>
+
+### Convención de grupos
+
+| Grupo | Ve |
+| --- | --- |
+| `svc-<servicio>` (p. ej. `svc-ms-consulta-ws`) | Las páginas y endpoints de ese servicio |
+| `docs-admin` | Runbooks internos como esta página |
+| *(sin grupos)* | Solo las páginas comunes (portada) |
+
+Para asignar servicios a un usuario basta con incluir los grupos correspondientes en el claim `groups` que emite el login. Un usuario sin el grupo recibe **404** en las páginas del servicio y no las ve en la navegación ni en la búsqueda.
+
+### Checklist de activación
+
+<Steps>
+  <Step title="Contratar Enterprise y configurar JWT">
+    Dashboard: **Settings → Access** → Visibility **Private** → Method **Custom → JWT**. Configura la URL de login y genera la clave privada.
+  </Step>
+  <Step title="Implementar el emisor de JWT">
+    El servicio de login de CARFAX MX resuelve los grupos del usuario (por servicio contratado/asignado), firma el token y redirige al callback.
+  </Step>
+  <Step title="Verificar la granularidad">
+    Con un usuario de prueba sin `svc-ms-consulta-ws`, confirma que las páginas del servicio devuelven 404 y no aparecen en navegación ni búsqueda.
+  </Step>
+</Steps>
+
+## Verificación local
+
+El CLI permite simular lectores con y sin grupos:
+
+```bash
+npx mint@latest dev --no-open                           # vista sin sesión
+npx mint@latest dev --signed-in --no-open               # con sesión, sin grupos
+npx mint@latest dev --groups svc-ms-consulta-ws --no-open  # con el grupo del servicio
+npx mint@latest validate --groups docs-admin            # validación con grupos simulados
+```
+
+## Alta de un servicio nuevo
+
+1. Agrega la entrada en `scripts/sync-openapi.mjs` (nombre, grupo `svc-<servicio>`, rutas) y ejecútalo.
+2. Crea las páginas `es/servicios/<servicio>/` y `en/services/<servicio>/` con frontmatter `groups: ["svc-<servicio>"]`.
+3. Agrega el tab del servicio en ambos idiomas en `docs.json`.
+4. En Fase 2: incluye el grupo nuevo en el emisor de JWT para los usuarios autorizados.
